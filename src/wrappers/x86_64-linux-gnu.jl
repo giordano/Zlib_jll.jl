@@ -29,19 +29,11 @@ function __init__()
 
     # Initialize PATH and LIBPATH environment variable listings
     global PATH_list, LIBPATH_list
-    global libz_path = normpath(joinpath(artifact_dir, libz_splitpath...))
 
-    # Manually `dlopen()` this right now so that future invocations
-    # of `ccall` with its `SONAME` will find this path immediately.
-    global libz_handle = dlopen(libz_path)
-    push!(LIBPATH_list, dirname(libz_path))
+    global libz_path, libz_handle
+    libz_path, libz_handle = get_lib_path_handle!(LIBPATH_list, artifact_dir, libz_splitpath)
 
-    # Filter out duplicate and empty entries in our PATH and LIBPATH entries
-    filter!(!isempty, unique!(PATH_list))
-    filter!(!isempty, unique!(LIBPATH_list))
-    global PATH = join(PATH_list, ':')
-    global LIBPATH = join(vcat(LIBPATH_list, [joinpath(Sys.BINDIR, Base.LIBDIR, "julia"), joinpath(Sys.BINDIR, Base.LIBDIR)]), ':')
-
+    global PATH, LIBPATH
+    PATH, LIBPATH = cleanup_path_libpath!(PATH_list, LIBPATH_list, ':')
     
 end  # __init__()
-
